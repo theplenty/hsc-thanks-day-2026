@@ -357,6 +357,7 @@
     background: #0b1633;
   }
   .map svg { display: block; width: 100%; height: auto; }
+  .naver-map { width: 100%; aspect-ratio: 416 / 300; max-width: 100%; }
 
   .apps { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .apps .btn { justify-content: center; border-radius: 6px; padding: 12px 8px; font-size: 13.5px; }
@@ -532,7 +533,8 @@
     </div>
 
     <div class="map" aria-label="약도">
-      <svg viewBox="0 0 416 300" xmlns="http://www.w3.org/2000/svg" role="img">
+      <div id="naver-map" class="naver-map" hidden></div>
+      <svg id="map-fallback" viewBox="0 0 416 300" xmlns="http://www.w3.org/2000/svg" role="img">
         <defs>
           <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#1c2e5f"/><stop offset="1" stop-color="#16264f"/>
@@ -632,6 +634,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4h3.5l1.5 4-2 1.5a11 11 0 0 0 6.5 6.5L16 14l4 1.5V19a1.5 1.5 0 0 1-1.5 1.5A15 15 0 0 1 3.5 5.5 1.5 1.5 0 0 1 5 4z"/></svg>
         전화 문의
       </a>
+      <button class="btn" type="button" id="share-kakao" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 10.9c0 2.7 1.8 5.1 4.5 6.5l-1 3.7c-.1.3.3.6.6.4l4.3-2.9c.5.1 1.1.1 1.6.1 5.5 0 10-3.5 10-7.8S17.5 3 12 3z"/></svg>
+        카카오톡 공유
+      </button>
     </div>
     <img class="logo" src="assets/logo.png" alt="가톨릭대학교 의과대학 가톨릭조혈모세포은행">
     <p class="copy">CATHOLIC HEMATOPOIETIC STEM CELL BANK</p>
@@ -684,5 +690,75 @@
     var diff = Math.round((target - today) / 86400000);
     if (diff > 0) { dd.textContent = 'D-' + diff; dd.hidden = false; }
     else if (diff === 0) { dd.textContent = 'D-DAY'; dd.hidden = false; }
+
+    // ── Naver map (falls back to the drawn map if the SDK can't load or auth fails)
+    var VENUE = { lat: 37.4980587, lng: 127.0055299 };
+    var NAVER_KEY_ID = 'orbk712b5s';
+    window.navermap_authFailure = function () { showFallback(); };
+    function showFallback() {
+      document.getElementById('naver-map').hidden = true;
+      document.getElementById('map-fallback').hidden = false;
+    }
+    function initNaverMap() {
+      try {
+        var el = document.getElementById('naver-map');
+        el.hidden = false;
+        document.getElementById('map-fallback').hidden = true;
+        var pos = new naver.maps.LatLng(VENUE.lat, VENUE.lng);
+        var map = new naver.maps.Map(el, {
+          center: pos, zoom: 16,
+          scaleControl: false, logoControl: true, mapDataControl: false,
+          zoomControl: true,
+          zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT, style: naver.maps.ZoomControlStyle.SMALL }
+        });
+        var marker = new naver.maps.Marker({ position: pos, map: map, title: '옴니버스파크 컨벤션홀' });
+        var info = new naver.maps.InfoWindow({
+          content: '<div style="padding:8px 12px;font-family:\'Noto Serif KR\',serif;font-size:13px;line-height:1.5;color:#0b1633;white-space:nowrap"><b>가톨릭대학교 옴니버스파크</b><br>컨벤션홀 L층</div>',
+          borderWidth: 0, backgroundColor: '#fff', anchorSize: new naver.maps.Size(10, 10)
+        });
+        info.open(map, marker);
+        naver.maps.Event.addListener(marker, 'click', function () { info.getMap() ? info.close() : info.open(map, marker); });
+      } catch (e) { showFallback(); }
+    }
+    (function loadNaver() {
+      if (location.protocol === 'file:') return;
+      var s = document.createElement('script');
+      s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + NAVER_KEY_ID;
+      s.async = true;
+      s.onload = function () { (window.naver && naver.maps) ? initNaverMap() : showFallback(); };
+      s.onerror = showFallback;
+      document.head.appendChild(s);
+    })();
+
+    // ── KakaoTalk share
+    var KAKAO_JS_KEY = '79678dfb3509728777e37fbc6aabb3ca';
+    var PAGE_URL = 'https://theplenty.github.io/hsc-thanks-day-2026/';
+    (function loadKakao() {
+      if (location.protocol === 'file:') return;
+      var s = document.createElement('script');
+      s.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js';
+      s.async = true;
+      s.onload = function () {
+        try {
+          if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+          var btn = document.getElementById('share-kakao');
+          btn.hidden = false;
+          btn.addEventListener('click', function () {
+            Kakao.Share.sendDefault({
+              objectType: 'feed',
+              content: {
+                title: '2026 조혈모세포 기증자 감사의 날',
+                description: '2026. 12. 04.(금) 18:00 · 가톨릭대학교 옴니버스파크 컨벤션홀 L층',
+                imageUrl: PAGE_URL + 'assets/og.jpg',
+                imageWidth: 1200, imageHeight: 630,
+                link: { mobileWebUrl: PAGE_URL, webUrl: PAGE_URL }
+              },
+              buttons: [{ title: '초청장 보기', link: { mobileWebUrl: PAGE_URL, webUrl: PAGE_URL } }]
+            });
+          });
+        } catch (e) { /* share button stays hidden */ }
+      };
+      document.head.appendChild(s);
+    })();
   })();
 </script>
