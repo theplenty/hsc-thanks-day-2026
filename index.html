@@ -358,7 +358,6 @@
     background: #0b1633;
   }
   .map svg { display: block; width: 100%; height: auto; }
-  .naver-map { width: 100%; aspect-ratio: 416 / 300; max-width: 100%; }
 
   .apps { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .apps .btn { justify-content: center; border-radius: 6px; padding: 12px 8px; font-size: 13.5px; }
@@ -534,8 +533,7 @@
     </div>
 
     <div class="map" aria-label="약도">
-      <div id="naver-map" class="naver-map" hidden></div>
-      <svg id="map-fallback" viewBox="0 0 416 300" xmlns="http://www.w3.org/2000/svg" role="img">
+      <svg viewBox="0 0 416 300" xmlns="http://www.w3.org/2000/svg" role="img">
         <defs>
           <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="#1c2e5f"/><stop offset="1" stop-color="#16264f"/>
@@ -553,7 +551,7 @@
         <line x1="213" y1="0" x2="213" y2="300" stroke="#2a3f78" stroke-width="1" stroke-dasharray="6 6"/>
         <!-- road labels -->
         <text x="12" y="84" fill="#8a97bd" font-size="11" font-family="Noto Serif KR, serif">사평대로</text>
-        <text x="228" y="180" fill="#8a97bd" font-size="11" font-family="Noto Serif KR, serif" transform="rotate(90 228 180)">반포대로</text>
+        <text x="208" y="180" fill="#8a97bd" font-size="11" font-family="Noto Serif KR, serif" transform="rotate(90 208 180)">반포대로</text>
         <!-- station -->
         <circle cx="213" cy="79" r="11" fill="#0b1633" stroke="#dcc082" stroke-width="2"/>
         <circle cx="213" cy="79" r="4" fill="#dcc082"/>
@@ -567,8 +565,8 @@
         <rect x="232" y="96" width="46" height="16" rx="3" fill="#dcc082"/>
         <text x="255" y="107.5" text-anchor="middle" fill="#0b1633" font-size="10" font-weight="600" font-family="Noto Serif KR, serif">4번 출구</text>
         <!-- walking path -->
-        <path d="M232 112 L232 130 L248 130 L248 236 L268 236" fill="none" stroke="#dcc082" stroke-width="1.5" stroke-dasharray="3 4"/>
-        <text x="256" y="176" fill="#dcc082" font-size="10.5" font-family="Noto Serif KR, serif">도보 10분</text>
+        <path d="M232 112 L232 236 L268 236" fill="none" stroke="#dcc082" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <text x="242" y="203" fill="#dcc082" font-size="10.5" font-family="Noto Serif KR, serif">도보 10분</text>
         <!-- hospital landmark -->
         <rect x="268" y="132" width="98" height="46" rx="3" fill="#152553" stroke="#25396f"/>
         <text x="317" y="152" text-anchor="middle" fill="#aab4d0" font-size="10.5" font-family="Noto Serif KR, serif">서울성모병원</text>
@@ -592,7 +590,7 @@
     </div>
 
     <div class="apps">
-      <a class="btn" id="btn-naver" href="https://map.naver.com/p/search/%ED%94%8C%EB%A0%8C%ED%8B%B0%EC%BB%A8%EB%B2%A4%EC%85%98%20%EC%98%B4%EB%8B%88%EB%B2%84%EC%8A%A4%ED%8C%8C%ED%81%AC" target="_blank" rel="noopener"><span class="dot" style="background:#03c75a"></span>네이버지도</a>
+      <a class="btn" id="btn-naver" href="https://naver.me/FgHDoDqj" target="_blank" rel="noopener"><span class="dot" style="background:#03c75a"></span>네이버지도</a>
       <a class="btn" id="btn-kakao" href="https://map.kakao.com/link/to/%EC%98%B4%EB%8B%88%EB%B2%84%EC%8A%A4%ED%8C%8C%ED%81%AC%20%ED%94%8C%EB%A0%8C%ED%8B%B0%EC%BB%A8%EB%B2%A4%EC%85%98,37.4980587,127.0055299" target="_blank" rel="noopener"><span class="dot" style="background:#fee500"></span>카카오맵</a>
       <a class="btn" id="btn-tmap" href="tmap://route?goalname=%EC%98%B4%EB%8B%88%EB%B2%84%EC%8A%A4%ED%8C%8C%ED%81%AC&goalx=127.0055299&goaly=37.4980587"><span class="dot" style="background:#e8384f"></span>티맵</a>
     </div>
@@ -691,45 +689,6 @@
     var diff = Math.round((target - today) / 86400000);
     if (diff > 0) { dd.textContent = 'D-' + diff; dd.hidden = false; }
     else if (diff === 0) { dd.textContent = 'D-DAY'; dd.hidden = false; }
-
-    // ── Naver map (falls back to the drawn map if the SDK can't load or auth fails)
-    var VENUE = { lat: 37.4980587, lng: 127.0055299 };
-    var NAVER_KEY_ID = 'orbk712b5s';
-    window.navermap_authFailure = function () { showFallback(); };
-    function showFallback() {
-      document.getElementById('naver-map').hidden = true;
-      document.getElementById('map-fallback').hidden = false;
-    }
-    function initNaverMap() {
-      try {
-        var el = document.getElementById('naver-map');
-        el.hidden = false;
-        document.getElementById('map-fallback').hidden = true;
-        var pos = new naver.maps.LatLng(VENUE.lat, VENUE.lng);
-        var map = new naver.maps.Map(el, {
-          center: pos, zoom: 16,
-          scaleControl: false, logoControl: true, mapDataControl: false,
-          zoomControl: true,
-          zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT, style: naver.maps.ZoomControlStyle.SMALL }
-        });
-        var marker = new naver.maps.Marker({ position: pos, map: map, title: '옴니버스파크 컨벤션홀' });
-        var info = new naver.maps.InfoWindow({
-          content: '<div style="padding:8px 12px;font-family:\'Noto Serif KR\',serif;font-size:13px;line-height:1.5;color:#0b1633;white-space:nowrap"><b>가톨릭대학교 옴니버스파크</b><br>컨벤션홀 L층</div>',
-          borderWidth: 0, backgroundColor: '#fff', anchorSize: new naver.maps.Size(10, 10)
-        });
-        info.open(map, marker);
-        naver.maps.Event.addListener(marker, 'click', function () { info.getMap() ? info.close() : info.open(map, marker); });
-      } catch (e) { showFallback(); }
-    }
-    (function loadNaver() {
-      if (location.protocol === 'file:') return;
-      var s = document.createElement('script');
-      s.src = 'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + NAVER_KEY_ID;
-      s.async = true;
-      s.onload = function () { (window.naver && naver.maps) ? initNaverMap() : showFallback(); };
-      s.onerror = showFallback;
-      document.head.appendChild(s);
-    })();
 
     // ── KakaoTalk share
     var KAKAO_JS_KEY = '79678dfb3509728777e37fbc6aabb3ca';
