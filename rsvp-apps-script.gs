@@ -14,21 +14,22 @@
  * 시트는 본인만 열람 가능(기본 비공개). 초청장 페이지는 이 URL로 POST/GET만 하므로
  * 수신자는 시트를 볼 수 없습니다.
  *
- * 중복 방지: 연락처(숫자만 비교)를 키로 사용합니다. 같은 연락처로 다시 보내면
- * 새 행을 추가하지 않고 기존 행을 갱신하고 "수정일시"를 기록합니다.
+ * 중복 처리: 시트는 "추가만" 합니다(기존 행을 절대 수정·삭제하지 않음).
+ * 같은 이름 + 휴대전화 뒤 4자리가 이미 있으면 새 행을 추가하지 않고 "이미 접수됨"으로 응답합니다.
+ * 변경이 필요한 경우 담당자가 시트에서 직접 수정합니다.
  */
 
 var SHEET_NAME = 'RSVP';            // 응답이 쌓일 시트 탭 이름 (없으면 첫 번째 탭 사용)
 var TOKEN = 'hsc-thanksday-2026';   // 페이지의 RSVP_TOKEN 과 같아야 함 (스팸 방지용)
 var NOTIFY_EMAIL = true;            // 회신이 들어올 때마다 본인 메일로 알림 (false 로 끄기)
 
-var HEADERS = ['접수일시', '참석여부', '성함', '연락처', '동반인원', '동반자 성함', '동반자 연락처', '총인원', '비고', '수정일시'];
-var COL = { date: 1, attend: 2, name: 3, phone: 4, cCount: 5, cName: 6, cPhone: 7, total: 8, memo: 9, updated: 10 };
+var HEADERS = ['접수일시', '이름', '휴대전화 뒤4자리', '참석여부', '가족동반', '총인원', '비고'];
+var COL = { date: 1, name: 2, last4: 3, attend: 4, family: 5, total: 6, memo: 7 };
 
 function getSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
-  // 헤더가 없거나 다르면 1행을 표준 헤더로 맞춤
+  // 헤더가 없거나 다르면 1행을 표준 헤더로 맞춤 (데이터 행은 건드리지 않음)
   var cur = sh.getLastRow() ? sh.getRange(1, 1, 1, HEADERS.length).getValues()[0].join('|') : '';
   if (cur !== HEADERS.join('|')) {
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
@@ -37,18 +38,31 @@ function getSheet() {
   return sh;
 }
 
-function digits(v) { return String(v || '').replace(/\D/g, ''); }
+function norm(s) { return String(s || '').replace(/\s+/g, '').trim(); }
 
-// 같은 연락처(숫자만 비교)로 이미 접수된 행 번호를 찾음. 없으면 0
-function findRowByPhone(sh, phone) {
+// 같은 이름 + 뒤4자리 행 번호 (없으면 0)
+function findRow(sh, name, last4) {
   var last = sh.getLastRow();
   if (last < 2) return 0;
-  var key = digits(phone);
-  var vals = sh.getRange(2, COL.phone, last - 1, 1).getValues();
+  var vals = sh.getRange(2, COL.name, last - 1, 2).getValues();
+  var n = norm(name), l = norm(last4);
   for (var i = 0; i < vals.length; i++) {
-    if (digits(vals[i][0]) === key) return i + 2;
+    if (norm(vals[i][0]) === n && norm(vals[i][1]) === l) return i + 2;
   }
   return 0;
+}
+
+function rowInfo(sh, row) {
+  var v = sh.getRange(row, 1, 1, HEADERS.length).getValues()[0];
+  var name = String(v[COL.name - 1]);
+  var masked = name.length >= 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
+  return {
+    name: masked,
+    attend: v[COL.attend - 1] === '참석',
+    family: v[COL.family - 1] === '가족 1인 동반',
+    total: Number(v[COL.total - 1]) || 0,
+    date: Utilities.formatDate(new Date(v[COL.date - 1]), 'Asia/Seoul', 'M월 d일')
+  };
 }
 
 function doPost(e) {
@@ -59,52 +73,39 @@ function doPost(e) {
     if (data.token !== TOKEN) return respond({ ok: false, error: 'bad token' });
 
     var name = String(data.name || '').trim();
-    var phone = String(data.phone || '').trim();
-    if (!name || digits(phone).length < 9) return respond({ ok: false, error: 'missing fields' });
+    var last4 = String(data.last4 || '').replace(/\D/g, '');
+    if (!name || last4.length !== 4) return respond({ ok: false, error: 'missing fields' });
 
     var attend = data.attend !== false;
-    // 동반자는 1인까지만 (페이지에서도 제한하지만 서버에서 한 번 더 자름)
-    var comp = (data.companions || []).slice(0, 1).map(function (c) {
-      if (typeof c === 'string') return { name: c.trim(), phone: '' };
-      return { name: String(c.name || '').trim(), phone: String(c.phone || '').trim() };
-    }).filter(function (c) { return c.name; });
-    if (!attend) comp = [];
-    var c = comp[0] || { name: '', phone: '' };
-    var total = attend ? 1 + comp.length : 0;
+    var family = attend && data.family === true;
+    var total = attend ? (family ? 2 : 1) : 0;
 
     var sh = getSheet();
-    var existing = findRowByPhone(sh, phone);
-    var nowDate = new Date();
-    var row;
-
+    var existing = findRow(sh, name, last4);
     if (existing) {
-      // 기존 회신 갱신 (접수일시는 유지, 수정일시 기록)
-      row = existing;
-      sh.getRange(row, COL.attend, 1, HEADERS.length - 1).setValues([[
-        attend ? '참석' : '불참', name, phone, comp.length, c.name, c.phone, total, String(data.memo || '').trim(), nowDate
-      ]]);
-    } else {
-      sh.appendRow([nowDate, attend ? '참석' : '불참', name, phone, comp.length, c.name, c.phone, total, String(data.memo || '').trim(), '']);
-      row = sh.getLastRow();
+      // 이미 접수됨 → 추가하지 않음
+      var info = rowInfo(sh, existing);
+      info.ok = false; info.duplicate = true;
+      return respond(info);
     }
+
+    sh.appendRow([new Date(), name, last4, attend ? '참석' : '불참', attend ? (family ? '가족 1인 동반' : '동반하지 않음') : '', total, String(data.memo || '').trim()]);
+    var row = sh.getLastRow();
     sh.getRange(row, COL.date).setNumberFormat('yyyy-mm-dd hh:mm');
-    sh.getRange(row, COL.updated).setNumberFormat('yyyy-mm-dd hh:mm');
-    sh.getRange(row, COL.phone).setNumberFormat('@');    // 연락처 앞 0 유지
-    sh.getRange(row, COL.cPhone).setNumberFormat('@');
+    sh.getRange(row, COL.last4).setNumberFormat('@');   // 앞자리 0 유지
 
     if (NOTIFY_EMAIL) {
       try {
         MailApp.sendEmail(
           Session.getEffectiveUser().getEmail(),
-          '[RSVP' + (existing ? ' 수정' : '') + '] ' + name + ' — ' + (attend ? '참석 (' + total + '명)' : '불참'),
-          '성함: ' + name + '\n연락처: ' + phone + '\n참석: ' + (attend ? '참석' : '불참') +
-          '\n동반자: ' + (c.name ? c.name + ' (' + c.phone + ')' : '없음') + '\n총인원: ' + total +
-          (existing ? '\n\n※ 같은 연락처의 기존 회신을 갱신했습니다. (행 ' + row + ')' : '') +
+          '[RSVP] ' + name + ' — ' + (attend ? '참석 (' + total + '명)' : '불참'),
+          '이름: ' + name + '\n뒤 4자리: ' + last4 + '\n참석: ' + (attend ? '참석' : '불참') +
+          '\n가족 동반: ' + (attend ? (family ? '가족 1인 동반' : '동반하지 않음') : '-') + '\n총인원: ' + total +
           '\n\n시트: ' + SpreadsheetApp.getActiveSpreadsheet().getUrl()
         );
       } catch (mailErr) { /* 메일 실패해도 접수는 유지 */ }
     }
-    return respond({ ok: true, row: row, updated: !!existing });
+    return respond({ ok: true, row: row });
   } catch (err) {
     return respond({ ok: false, error: String(err) });
   } finally {
@@ -112,27 +113,18 @@ function doPost(e) {
   }
 }
 
-// GET ?phone=01012345678&token=… → 해당 연락처의 회신 여부 조회 (이름은 가운데 글자 마스킹)
+// GET ?name=홍길동&last4=1234&token=… → 회신 여부 조회 (이름은 가운데 마스킹)
 function doGet(e) {
   var p = (e && e.parameter) || {};
-  if (!p.phone) return ContentService.createTextOutput('RSVP endpoint OK').setMimeType(ContentService.MimeType.TEXT);
+  if (!p.name && !p.last4) return ContentService.createTextOutput('RSVP endpoint OK').setMimeType(ContentService.MimeType.TEXT);
   if (p.token !== TOKEN) return respond({ ok: false, error: 'bad token' });
 
   var sh = getSheet();
-  var row = findRowByPhone(sh, p.phone);
+  var row = findRow(sh, p.name, p.last4);
   if (!row) return respond({ ok: true, found: false });
-
-  var v = sh.getRange(row, 1, 1, HEADERS.length).getValues()[0];
-  var name = String(v[COL.name - 1]);
-  var masked = name.length >= 2 ? name[0] + '*'.repeat(name.length - 2) + name[name.length - 1] : name;
-  var date = v[COL.updated - 1] instanceof Date ? v[COL.updated - 1] : v[COL.date - 1];
-  return respond({
-    ok: true, found: true,
-    name: masked,
-    attend: v[COL.attend - 1] === '참석',
-    total: Number(v[COL.total - 1]) || 0,
-    date: Utilities.formatDate(new Date(date), 'Asia/Seoul', 'M월 d일')
-  });
+  var info = rowInfo(sh, row);
+  info.ok = true; info.found = true;
+  return respond(info);
 }
 
 function respond(obj) {

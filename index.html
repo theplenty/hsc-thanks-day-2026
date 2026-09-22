@@ -442,6 +442,8 @@
   }
   .lookup-row input:focus { border-color: var(--gold); }
   .lookup-row .btn { border-radius: 8px; padding: 10px 16px; }
+  .lookup-row input.last4 { flex: 0 0 88px; }
+  .field input.last4 { max-width: 160px; letter-spacing: 0.3em; font-family: var(--display); font-size: 20px; font-variant-numeric: tabular-nums; }
   .lookup-result { margin: 10px 0 0; font-size: 13px; line-height: 1.7; color: var(--ivory-soft); }
   .lookup-result b { color: var(--gold-light); font-weight: 500; }
   .btn-primary {
@@ -757,7 +759,7 @@
         </div>
         <div>
           <h3>주차</h3>
-          <p>옴니버스파크 건물 지하주차장 이용 가능<br>행사 당일 <strong style="font-weight:500;color:var(--ivory)">종일 주차권</strong> 제공</p>
+          <p>옴니버스파크 건물 지하주차장 이용 가능<br>행사 당일 <strong style="font-weight:500;color:var(--ivory)">무료 주차</strong> 가능</p>
         </div>
       </div>
     </div>
@@ -770,16 +772,16 @@
       <h2 class="heading">참석 회신</h2>
     </div>
     <p class="rsvp-lead">행사 당일 <strong>식사가 제공</strong>됩니다.<br>참석 여부와 동반자 인원을 확정하기 위해<br>참석 회신을 받고 있습니다.</p>
-    <p class="rsvp-sub">동반자는 <strong>1인까지</strong> 함께 참석하실 수 있습니다.</p>
+    <p class="rsvp-sub">가족 <strong>1인까지</strong> 동반하실 수 있습니다.</p>
     <p class="rsvp-note">미리 등록해 주시지 않으면<br>식사 준비 수량에 차질이 생길 수 있으니<br><strong>반드시 회신</strong>해 주시기 바랍니다.</p>
     <div class="deadline">
       <span class="deadline-label">회신 마감</span>
-      <span class="deadline-date">2026. 11. 20 <small>FRI</small></span>
-      <span class="deadline-note">행사 14일 전까지 회신 필수</span>
+      <span class="deadline-date">2026. 10. 30 <small>FRI</small></span>
+      <span class="deadline-note">마감일까지 회신 필수</span>
       <span class="deadline-dday" id="deadline-dday" hidden></span>
     </div>
     <button class="btn btn-primary" type="button" id="open-rsvp">참석 여부 회신하기</button>
-    <p class="rsvp-done" id="rsvp-done" hidden>이 기기에서 회신을 보내셨습니다.<br>내용을 바꾸시려면 같은 연락처로 다시 보내 주시면 됩니다.</p>
+    <p class="rsvp-done" id="rsvp-done" hidden>이 기기에서 회신을 보내셨습니다.<br>내용 변경이 필요하시면 전화로 문의해 주세요.</p>
   </section>
 
   <!-- 6. OUTRO -->
@@ -822,14 +824,25 @@
       <h3 class="sheet-title" id="rsvp-title">참석 여부 회신</h3>
 
       <div class="lookup">
-        <button class="link-btn" type="button" id="lookup-toggle">이미 회신하셨나요? 연락처로 확인하기</button>
+        <button class="link-btn" type="button" id="lookup-toggle">이미 회신하셨나요? 회신 내역 확인하기</button>
         <div class="lookup-body" id="lookup-body" hidden>
           <div class="lookup-row">
-            <input type="tel" id="lookup-phone" inputmode="tel" placeholder="010-0000-0000" aria-label="확인할 연락처">
+            <input type="text" id="lookup-name" autocomplete="off" placeholder="이름" aria-label="확인할 이름">
+            <input type="text" id="lookup-last4" inputmode="numeric" maxlength="4" placeholder="뒤 4자리" aria-label="휴대전화 뒤 4자리" class="last4">
             <button class="btn" type="button" id="lookup-btn">확인</button>
           </div>
           <p class="lookup-result" id="lookup-result" hidden></p>
         </div>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-name">이름</label>
+        <input type="text" id="rsvp-name" name="name" autocomplete="name" placeholder="홍길동" required>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-last4">휴대전화번호 뒤 4자리 <small>동명이인 확인용으로만 사용됩니다</small></label>
+        <input type="text" id="rsvp-last4" name="last4" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="off" placeholder="0000" class="last4" required>
       </div>
 
       <fieldset class="field">
@@ -840,34 +853,18 @@
         </div>
       </fieldset>
 
-      <div class="field">
-        <label for="rsvp-name">성함</label>
-        <input type="text" id="rsvp-name" name="name" autocomplete="name" placeholder="홍길동" required>
-      </div>
-
-      <div class="field">
-        <label for="rsvp-phone">연락처</label>
-        <input type="tel" id="rsvp-phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" required>
-      </div>
-
       <fieldset class="field" id="companion-field">
-        <legend>동반자 <small>동반자는 1인까지 가능합니다</small></legend>
+        <legend>가족 동반 여부 <small>가족 1인까지 동반 가능합니다</small></legend>
         <div class="segmented">
-          <label><input type="radio" name="companion" value="0" id="companion-0" checked><span>동반자 없음</span></label>
-          <label><input type="radio" name="companion" value="1" id="companion-1"><span>동반자 1인</span></label>
-        </div>
-        <div class="companion-name" id="companion-name-wrap" hidden>
-          <label for="companion-name">동반자 성함</label>
-          <input type="text" id="companion-name" name="companionName" autocomplete="off" placeholder="동반자 성함">
-          <label for="companion-phone" style="margin-top:10px">동반자 연락처</label>
-          <input type="tel" id="companion-phone" name="companionPhone" inputmode="tel" autocomplete="off" placeholder="010-0000-0000">
+          <label><input type="radio" name="companion" value="0" id="companion-0" checked><span>동반하지 않음</span></label>
+          <label><input type="radio" name="companion" value="1" id="companion-1"><span>가족 1인 동반</span></label>
         </div>
         <p class="headcount" id="headcount">총 참석 인원 <b>1</b>명</p>
       </fieldset>
 
       <label class="consent">
         <input type="checkbox" id="rsvp-consent" required>
-        <span>입력하신 성함·연락처는 행사 참석 확인 용도로만 사용되며, 행사 종료 후 파기됩니다. <b>(필수)</b></span>
+        <span>입력하신 정보는 행사 참석 확인 용도로만 사용되며, 행사 종료 후 파기됩니다. <b>(필수)</b></span>
       </label>
 
       <p class="form-error" id="form-error" hidden></p>
@@ -969,17 +966,16 @@
   (function () {
     var RSVP_ENDPOINT = '';                 // Apps Script 웹 앱 URL (…/exec) — 배포 후 채움
     var RSVP_TOKEN = 'hsc-thanksday-2026';  // rsvp-apps-script.gs 의 TOKEN 과 동일
-    var DEADLINE = Date.UTC(2026, 10, 20);  // 2026-11-20 (KST 기준 날짜)
+    var DEADLINE = Date.UTC(2026, 9, 30);   // 2026-10-30 (KST 기준 날짜)
 
     var $ = function (id) { return document.getElementById(id); };
     var modal = $('rsvp-modal'), form = $('rsvp-form'), success = $('rsvp-success');
     var openBtn = $('open-rsvp'), doneEl = $('rsvp-done'), errEl = $('form-error'), submitBtn = $('rsvp-submit');
     var attendYes = $('attend-yes'), attendNo = $('attend-no');
     var companionField = $('companion-field'), companion0 = $('companion-0'), companion1 = $('companion-1');
-    var companionWrap = $('companion-name-wrap'), companionName = $('companion-name'), companionPhone = $('companion-phone');
     var headcount = $('headcount').querySelector('b');
-    var nameEl = $('rsvp-name'), phoneEl = $('rsvp-phone'), consentEl = $('rsvp-consent');
-    var lookupToggle = $('lookup-toggle'), lookupBody = $('lookup-body'), lookupPhone = $('lookup-phone'), lookupBtn = $('lookup-btn'), lookupResult = $('lookup-result');
+    var nameEl = $('rsvp-name'), last4El = $('rsvp-last4'), consentEl = $('rsvp-consent');
+    var lookupToggle = $('lookup-toggle'), lookupBody = $('lookup-body'), lookupName = $('lookup-name'), lookupLast4 = $('lookup-last4'), lookupBtn = $('lookup-btn'), lookupResult = $('lookup-result');
     var lastFocus = null;
 
     // ── 마감까지 D-day
@@ -993,7 +989,7 @@
     else if (left === 0) ddayEl.innerHTML = '<b>오늘</b> 회신 마감일입니다';
     else { ddayEl.innerHTML = '회신 마감일이 지났습니다 · 문의는 전화로 부탁드립니다'; ddayEl.classList.add('over'); openBtn.textContent = '참석 여부 회신하기 (마감 후 접수)'; }
 
-    // 이미 회신한 기기면 안내 (기기별 편의 기능 — 다른 기기에서는 '연락처로 확인' 사용)
+    // 이미 회신한 기기면 안내 (기기별 표시 — 다른 기기에서는 '회신 내역 확인' 사용)
     try { if (localStorage.getItem('rsvp-2026') === 'done') doneEl.hidden = false; } catch (e) {}
 
     function openModal() {
@@ -1016,23 +1012,16 @@
     function refresh() {
       var attending = attendYes.checked;
       companionField.hidden = !attending;
-      companionWrap.hidden = !companion1.checked;
       headcount.textContent = attending ? (companion1.checked ? 2 : 1) : 0;
     }
     [attendYes, attendNo, companion0, companion1].forEach(function (el) { el.addEventListener('change', refresh); });
     refresh();
 
-    // 연락처 자동 하이픈
-    function fmtPhone(el) {
-      el.addEventListener('input', function () {
-        var d = el.value.replace(/\D/g, '').slice(0, 11), out = d;
-        if (d.length > 3 && d.length <= 7) out = d.slice(0, 3) + '-' + d.slice(3);
-        else if (d.length > 7) out = d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
-        el.value = out;
-      });
-    }
-    [phoneEl, companionPhone, lookupPhone].forEach(fmtPhone);
-    var PHONE_RE = /^0\d{1,2}-\d{3,4}-\d{4}$/;
+    // 뒤 4자리: 숫자만
+    [last4El, lookupLast4].forEach(function (el) {
+      el.addEventListener('input', function () { el.value = el.value.replace(/\D/g, '').slice(0, 4); });
+    });
+    var LAST4_RE = /^\d{4}$/;
 
     function showError(msg, el) {
       errEl.textContent = msg; errEl.hidden = false;
@@ -1047,24 +1036,27 @@
           return fetch(RSVP_ENDPOINT, { method: 'POST', mode: 'no-cors', body: body }).then(function () { return { ok: true, opaque: true }; });
         });
     }
+    function describe(res) {
+      return '<b>' + res.name + '</b> 님 · <b>' + (res.attend ? '참석' + (res.family ? ' (가족 1인 동반)' : '') : '불참') + '</b> · ' + res.date + ' 접수됨';
+    }
 
-    // ── 회신 내역 확인 (연락처로 조회)
+    // ── 회신 내역 확인 (이름 + 뒤 4자리)
     lookupToggle.addEventListener('click', function () {
       lookupBody.hidden = !lookupBody.hidden;
-      if (!lookupBody.hidden) lookupPhone.focus();
+      if (!lookupBody.hidden) lookupName.focus();
     });
     lookupBtn.addEventListener('click', function () {
-      var phone = lookupPhone.value.trim();
+      var name = lookupName.value.trim(), last4 = lookupLast4.value.trim();
       lookupResult.hidden = false;
-      if (!PHONE_RE.test(phone)) { lookupResult.textContent = '연락처 형식을 확인해 주세요. (예: 010-1234-5678)'; return; }
+      if (!name || !LAST4_RE.test(last4)) { lookupResult.textContent = '이름과 휴대전화 뒤 4자리를 입력해 주세요.'; return; }
       if (!RSVP_ENDPOINT) { lookupResult.textContent = '조회 시스템 준비 중입니다.'; return; }
       lookupResult.textContent = '확인 중…';
-      fetch(RSVP_ENDPOINT + '?phone=' + encodeURIComponent(phone.replace(/\D/g, '')) + '&token=' + RSVP_TOKEN, { redirect: 'follow' })
+      fetch(RSVP_ENDPOINT + '?name=' + encodeURIComponent(name) + '&last4=' + last4 + '&token=' + RSVP_TOKEN, { redirect: 'follow' })
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (!res || !res.ok) throw new Error('fail');
-          if (!res.found) { lookupResult.innerHTML = '이 연락처로 접수된 회신이 <b>없습니다</b>. 아래에서 회신해 주세요.'; return; }
-          lookupResult.innerHTML = '<b>' + res.name + '</b> 님 · <b>' + (res.attend ? '참석 ' + res.total + '명' : '불참') + '</b> · ' + res.date + ' 접수됨<br>내용을 바꾸시려면 아래에서 같은 연락처로 다시 보내 주세요. 기존 회신이 새 내용으로 갱신됩니다.';
+          if (!res.found) { lookupResult.innerHTML = '접수된 회신이 <b>없습니다</b>. 아래에서 회신해 주세요.'; return; }
+          lookupResult.innerHTML = describe(res) + '<br>이미 회신이 접수되어 있습니다. 내용 변경이 필요하시면 전화로 문의해 주세요.';
         })
         .catch(function () { lookupResult.textContent = '조회에 실패했습니다. 잠시 후 다시 시도해 주세요.'; });
     });
@@ -1073,48 +1065,44 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       errEl.hidden = true;
-      [nameEl, phoneEl, companionName, companionPhone].forEach(function (el) { el.classList.remove('invalid'); });
+      [nameEl, last4El].forEach(function (el) { el.classList.remove('invalid'); });
 
       var attending = attendYes.checked;
       var name = nameEl.value.trim();
-      var phone = phoneEl.value.trim();
-      var withCompanion = attending && companion1.checked;
-      var cName = companionName.value.trim();
-      var cPhone = companionPhone.value.trim();
+      var last4 = last4El.value.trim();
+      var family = attending && companion1.checked;
 
-      if (!name) return showError('성함을 입력해 주세요.', nameEl);
-      if (!PHONE_RE.test(phone)) return showError('연락처를 확인해 주세요. (예: 010-1234-5678)', phoneEl);
-      if (withCompanion && !cName) return showError('동반자 성함을 입력해 주세요.', companionName);
-      if (withCompanion && !PHONE_RE.test(cPhone)) return showError('동반자 연락처를 확인해 주세요.', companionPhone);
-      if (withCompanion && cPhone === phone) return showError('동반자 연락처가 본인 연락처와 같습니다.', companionPhone);
+      if (!name) return showError('이름을 입력해 주세요.', nameEl);
+      if (!LAST4_RE.test(last4)) return showError('휴대전화번호 뒤 4자리를 숫자로 입력해 주세요.', last4El);
       if (!consentEl.checked) return showError('개인정보 수집·이용에 동의해 주세요.');
       if (!RSVP_ENDPOINT) return showError('회신 접수 준비 중입니다. 잠시 후 다시 시도해 주세요.');
 
-      var payload = {
-        token: RSVP_TOKEN, attend: attending, name: name, phone: phone,
-        companions: withCompanion ? [{ name: cName, phone: cPhone }] : [],
-        memo: '', ua: navigator.userAgent
-      };
+      var payload = { token: RSVP_TOKEN, name: name, last4: last4, attend: attending, family: family, memo: '', ua: navigator.userAgent };
 
       submitBtn.disabled = true; submitBtn.textContent = '보내는 중…';
       post(payload)
         .then(function (res) {
+          submitBtn.disabled = false; submitBtn.textContent = '회신 보내기';
+          if (res && res.duplicate) {
+            // 이미 같은 이름+뒤4자리로 접수됨 → 새로 쌓지 않고 안내만
+            showError('이미 접수된 회신이 있습니다. (' + res.date + ' · ' + (res.attend ? '참석' + (res.family ? ', 가족 1인 동반' : '') : '불참') + ') 내용 변경이 필요하시면 전화로 문의해 주세요.');
+            try { localStorage.setItem('rsvp-2026', 'done'); } catch (e) {}
+            doneEl.hidden = false;
+            return;
+          }
           if (!res || res.ok === false) throw new Error(res && res.error || 'fail');
-          onSuccess(res);
+          onSuccess();
         })
         .catch(function () {
           submitBtn.disabled = false; submitBtn.textContent = '회신 보내기';
           showError('전송에 실패했습니다. 네트워크를 확인하고 다시 시도해 주세요.');
         });
 
-      function onSuccess(res) {
-        submitBtn.disabled = false; submitBtn.textContent = '회신 보내기';
+      function onSuccess() {
         var line1 = attending
-          ? name + ' 님, <b>' + (withCompanion ? 2 : 1) + '명</b> 참석으로 접수되었습니다.'
+          ? name + ' 님, <b>' + (family ? '2명 (가족 1인 동반)' : '1명') + '</b> 참석으로 접수되었습니다.'
           : name + ' 님, 불참으로 접수되었습니다.';
-        var line2 = res.updated
-          ? '이미 접수된 회신이 있어 <b>새 내용으로 갱신</b>했습니다.'
-          : (attending ? '12월 4일에 뵙겠습니다.' : '마음 전해 주셔서 감사합니다.');
+        var line2 = attending ? '12월 4일에 뵙겠습니다.' : '마음 전해 주셔서 감사합니다.';
         $('success-msg').innerHTML = line1 + '<br>' + line2;
         form.hidden = true; success.hidden = false;
         doneEl.hidden = false;
