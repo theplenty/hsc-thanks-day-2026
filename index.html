@@ -387,6 +387,123 @@
     font-family: var(--display); font-weight: 600; font-size: 12px; color: #fff;
   }
 
+  /* ───────── RSVP ───────── */
+  .rsvp {
+    padding-block: 72px 80px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--navy-700), var(--navy-800));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .rsvp-lead { margin: 0; font-size: 15.5px; line-height: 1.95; color: var(--ivory); font-weight: 300; }
+  .rsvp-lead strong, .rsvp-note strong, .rsvp-sub strong { font-weight: 500; color: var(--gold-light); }
+  .rsvp-sub { margin: 14px 0 0; font-size: 14px; color: var(--ivory-soft); }
+  .rsvp-note { margin: 22px 0 0; font-size: 14px; line-height: 1.9; color: var(--ivory-soft); }
+  .deadline {
+    margin: 32px 0 0;
+    padding: 20px 28px 18px;
+    border: 1px solid var(--gold-line);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 240px;
+  }
+  .deadline-label { font-size: 12px; letter-spacing: 0.3em; text-indent: 0.3em; color: var(--gold); }
+  .deadline-date { font-family: var(--display); font-size: 30px; font-weight: 500; letter-spacing: 0.08em; color: var(--ivory); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .deadline-date small { font-size: 14px; letter-spacing: 0.2em; margin-left: 4px; color: var(--gold-light); }
+  .deadline-note { font-size: 13px; color: var(--ivory-soft); margin-top: 4px; }
+  .btn-primary {
+    background: var(--gold);
+    color: var(--navy-900);
+    border-color: var(--gold);
+    font-weight: 500;
+    font-size: 15px;
+    padding: 14px 32px;
+    letter-spacing: 0.06em;
+  }
+  .btn-primary:hover, .btn-primary:focus-visible { background: var(--gold-light); border-color: var(--gold-light); }
+  .btn-primary[disabled] { opacity: 0.55; cursor: default; }
+  .rsvp .btn-primary { margin-top: 32px; }
+  .rsvp-done { margin: 16px 0 0; font-size: 13.5px; color: var(--gold-light); }
+
+  /* modal / bottom sheet */
+  .modal { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+  .modal-backdrop { position: absolute; inset: 0; background: rgba(4, 8, 22, 0.72); backdrop-filter: blur(2px); }
+  .sheet {
+    position: relative;
+    width: 100%;
+    max-width: var(--col);
+    max-height: calc(100% - 24px);
+    overflow-y: auto;
+    background: var(--navy-800);
+    border: 1px solid var(--gold-line);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    padding: 28px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
+    animation: rise 0.28s ease-out;
+  }
+  @keyframes rise { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+  @media (min-width: 560px) {
+    .modal { align-items: center; padding: 24px; }
+    .sheet { border-radius: 14px; border-bottom: 1px solid var(--gold-line); max-height: calc(100% - 48px); }
+  }
+  .sheet-close {
+    position: absolute; top: 14px; right: 14px;
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 0; background: transparent; color: var(--ivory-muted); cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .sheet-close svg { width: 20px; height: 20px; }
+  .sheet-close:hover, .sheet-close:focus-visible { color: var(--ivory); background: rgba(239, 231, 212, 0.06); outline: none; }
+  .sheet-title { margin: 0 0 22px; font-size: 21px; font-weight: 500; color: var(--ivory); letter-spacing: 0.04em; }
+
+  .field { border: 0; padding: 0; margin: 0 0 20px; min-width: 0; }
+  .field > label, .field > legend {
+    display: block; padding: 0; margin: 0 0 8px;
+    font-size: 13px; letter-spacing: 0.12em; color: var(--gold);
+  }
+  .field > label small, .field > legend small { display: block; letter-spacing: 0; color: var(--ivory-muted); font-size: 12.5px; margin-top: 2px; }
+  .field input[type="text"], .field input[type="tel"] {
+    width: 100%; font: inherit; font-size: 16px; color: var(--ivory);
+    background: rgba(239, 231, 212, 0.04);
+    border: 1px solid var(--gold-line); border-radius: 8px;
+    padding: 13px 14px; outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .field input::placeholder { color: rgba(239, 231, 212, 0.3); }
+  .field input:focus { border-color: var(--gold); background: rgba(239, 231, 212, 0.06); }
+  .field input.invalid { border-color: #d9736b; }
+  .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .segmented label { position: relative; cursor: pointer; }
+  .segmented input { position: absolute; opacity: 0; inset: 0; }
+  .segmented span {
+    display: block; text-align: center; padding: 12px 8px;
+    border: 1px solid var(--gold-line); border-radius: 8px;
+    font-size: 14px; color: var(--ivory-soft);
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+  }
+  .segmented input:checked + span { background: rgba(190, 157, 89, 0.16); border-color: var(--gold); color: var(--gold-light); }
+  .segmented input:focus-visible + span { box-shadow: 0 0 0 3px rgba(190, 157, 89, 0.28); }
+  .companion-name { margin-top: 10px; }
+  .companion-name label { display: block; font-size: 12.5px; color: var(--ivory-muted); margin-bottom: 6px; }
+  .headcount { margin: 12px 0 0; font-size: 13px; color: var(--ivory-muted); }
+  .headcount b { color: var(--gold-light); font-weight: 500; font-size: 15px; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.7; color: var(--ivory-muted); margin: 4px 0 18px; cursor: pointer; }
+  .consent input { margin: 4px 0 0; accent-color: var(--gold); flex: none; width: 16px; height: 16px; }
+  .consent b { font-weight: 500; color: var(--ivory-soft); }
+  .form-error { margin: 0 0 12px; font-size: 13px; color: #e39a93; }
+  .btn-submit { width: 100%; justify-content: center; border-radius: 10px; padding: 15px; }
+  .sheet-success { text-align: center; padding: 12px 0 4px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .sheet-success .check { width: 56px; height: 56px; border-radius: 50%; border: 1px solid var(--gold); color: var(--gold-light); display: grid; place-items: center; margin-bottom: 6px; }
+  .sheet-success .check svg { width: 26px; height: 26px; }
+  .sheet-success .sheet-title { margin-bottom: 0; }
+  .sheet-success p { margin: 0 0 8px; font-size: 14px; line-height: 1.8; color: var(--ivory-soft); }
+
   /* ───────── Footer ───────── */
   .outro {
     padding-block: 84px 40px;
@@ -617,7 +734,25 @@
     </div>
   </section>
 
-  <!-- 5. OUTRO -->
+  <!-- 5. RSVP -->
+  <section class="rsvp">
+    <div class="heading-group">
+      <p class="eyebrow">RSVP</p>
+      <h2 class="heading">참석 회신</h2>
+    </div>
+    <p class="rsvp-lead">행사 당일 <strong>식사가 제공</strong>됩니다.<br>참석 여부와 동반자 인원을 확정하기 위해<br>참석 회신을 받고 있습니다.</p>
+    <p class="rsvp-sub">동반자는 <strong>1인까지</strong> 함께 참석하실 수 있습니다.</p>
+    <p class="rsvp-note">미리 등록해 주시지 않으면<br>식사 준비 수량에 차질이 생길 수 있으니<br><strong>반드시 회신</strong>해 주시기 바랍니다.</p>
+    <div class="deadline">
+      <span class="deadline-label">회신 마감</span>
+      <span class="deadline-date">2026. 11. 20 <small>FRI</small></span>
+      <span class="deadline-note">행사 14일 전까지 회신 필수</span>
+    </div>
+    <button class="btn btn-primary" type="button" id="open-rsvp">참석 여부 회신하기</button>
+    <p class="rsvp-done" id="rsvp-done" hidden>회신이 접수되었습니다. 감사합니다.</p>
+  </section>
+
+  <!-- 6. OUTRO -->
   <section class="outro">
     <p class="closing">여러분의 소중한 나눔이<br>누군가에게는 새로운 시작이 되었습니다.<br>귀한 걸음으로 자리를 빛내주시기 바랍니다.</p>
     <div class="btn-row" style="margin-top:0">
@@ -645,6 +780,68 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- RSVP modal -->
+<div class="modal" id="rsvp-modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rsvp-title">
+    <button class="sheet-close" type="button" data-close aria-label="닫기">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <form id="rsvp-form" novalidate>
+      <p class="eyebrow" style="text-align:left;margin-bottom:6px">RSVP</p>
+      <h3 class="sheet-title" id="rsvp-title">참석 여부 회신</h3>
+
+      <fieldset class="field">
+        <legend>참석 여부</legend>
+        <div class="segmented">
+          <label><input type="radio" name="attend" value="yes" id="attend-yes" checked><span>참석합니다</span></label>
+          <label><input type="radio" name="attend" value="no" id="attend-no"><span>참석이 어렵습니다</span></label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="rsvp-name">성함</label>
+        <input type="text" id="rsvp-name" name="name" autocomplete="name" placeholder="홍길동" required>
+      </div>
+
+      <div class="field">
+        <label for="rsvp-phone">연락처</label>
+        <input type="tel" id="rsvp-phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="010-0000-0000" required>
+      </div>
+
+      <fieldset class="field" id="companion-field">
+        <legend>동반자 <small>동반자는 1인까지 가능합니다</small></legend>
+        <div class="segmented">
+          <label><input type="radio" name="companion" value="0" id="companion-0" checked><span>동반자 없음</span></label>
+          <label><input type="radio" name="companion" value="1" id="companion-1"><span>동반자 1인</span></label>
+        </div>
+        <div class="companion-name" id="companion-name-wrap" hidden>
+          <label for="companion-name">동반자 성함</label>
+          <input type="text" id="companion-name" name="companionName" autocomplete="off" placeholder="동반자 성함">
+        </div>
+        <p class="headcount" id="headcount">총 참석 인원 <b>1</b>명</p>
+      </fieldset>
+
+      <label class="consent">
+        <input type="checkbox" id="rsvp-consent" required>
+        <span>입력하신 성함·연락처는 행사 참석 확인 용도로만 사용되며, 행사 종료 후 파기됩니다. <b>(필수)</b></span>
+      </label>
+
+      <p class="form-error" id="form-error" hidden></p>
+      <button class="btn btn-primary btn-submit" type="submit" id="rsvp-submit">회신 보내기</button>
+    </form>
+
+    <div class="sheet-success" id="rsvp-success" hidden>
+      <div class="check" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12.5l4.5 4.5L19 7"/></svg>
+      </div>
+      <h3 class="sheet-title">회신이 접수되었습니다</h3>
+      <p id="success-msg"></p>
+      <button class="btn" type="button" data-close>닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
   (function () {
     var toastEl = document.getElementById('toast'), toastTimer;
@@ -654,6 +851,7 @@
       clearTimeout(toastTimer);
       toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2200);
     }
+    window.showToast = toast;
     function copy(text, ok) {
       var done = function () { toast(ok); };
       var fail = function () { toast('복사에 실패했습니다. 길게 눌러 복사해 주세요.'); };
@@ -720,5 +918,138 @@
       };
       document.head.appendChild(s);
     })();
+  })();
+</script>
+
+<script>
+  // ── RSVP → Google Sheets (Apps Script web app)
+  (function () {
+    var RSVP_ENDPOINT = '';                 // Apps Script 웹 앱 URL (…/exec) — 배포 후 채움
+    var RSVP_TOKEN = 'hsc-thanksday-2026';  // rsvp-apps-script.gs 의 TOKEN 과 동일
+    var DEADLINE = Date.UTC(2026, 10, 20);  // 2026-11-20 (KST 기준 날짜)
+
+    var modal = document.getElementById('rsvp-modal');
+    var form = document.getElementById('rsvp-form');
+    var success = document.getElementById('rsvp-success');
+    var openBtn = document.getElementById('open-rsvp');
+    var doneEl = document.getElementById('rsvp-done');
+    var errEl = document.getElementById('form-error');
+    var submitBtn = document.getElementById('rsvp-submit');
+    var attendYes = document.getElementById('attend-yes');
+    var attendNo = document.getElementById('attend-no');
+    var companionField = document.getElementById('companion-field');
+    var companion1 = document.getElementById('companion-1');
+    var companion0 = document.getElementById('companion-0');
+    var companionWrap = document.getElementById('companion-name-wrap');
+    var companionName = document.getElementById('companion-name');
+    var headcount = document.getElementById('headcount').querySelector('b');
+    var nameEl = document.getElementById('rsvp-name');
+    var phoneEl = document.getElementById('rsvp-phone');
+    var consentEl = document.getElementById('rsvp-consent');
+    var lastFocus = null;
+
+    // 이미 회신한 기기면 안내 문구 표시 (기기별 편의 기능일 뿐, 재회신은 가능)
+    try { if (localStorage.getItem('rsvp-2026') === 'done') doneEl.hidden = false; } catch (e) {}
+
+    function openModal() {
+      lastFocus = document.activeElement;
+      form.hidden = false; success.hidden = true; errEl.hidden = true;
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      setTimeout(function () { nameEl.focus(); }, 60);
+    }
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    openBtn.addEventListener('click', openModal);
+    modal.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', closeModal); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) closeModal(); });
+
+    function refresh() {
+      var attending = attendYes.checked;
+      companionField.hidden = !attending;
+      companionWrap.hidden = !companion1.checked;
+      headcount.textContent = attending ? (companion1.checked ? 2 : 1) : 0;
+    }
+    [attendYes, attendNo, companion0, companion1].forEach(function (el) { el.addEventListener('change', refresh); });
+    refresh();
+
+    // 연락처 자동 하이픈
+    phoneEl.addEventListener('input', function () {
+      var d = phoneEl.value.replace(/\D/g, '').slice(0, 11);
+      var out = d;
+      if (d.length > 3 && d.length <= 7) out = d.slice(0, 3) + '-' + d.slice(3);
+      else if (d.length > 7) out = d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+      phoneEl.value = out;
+    });
+
+    function showError(msg, el) {
+      errEl.textContent = msg; errEl.hidden = false;
+      if (el) { el.classList.add('invalid'); el.focus(); }
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      errEl.hidden = true;
+      [nameEl, phoneEl, companionName].forEach(function (el) { el.classList.remove('invalid'); });
+
+      var attending = attendYes.checked;
+      var name = nameEl.value.trim();
+      var phone = phoneEl.value.trim();
+      var withCompanion = attending && companion1.checked;
+      var cName = companionName.value.trim();
+
+      if (!name) return showError('성함을 입력해 주세요.', nameEl);
+      if (!/^0\d{1,2}-\d{3,4}-\d{4}$/.test(phone)) return showError('연락처를 확인해 주세요. (예: 010-1234-5678)', phoneEl);
+      if (withCompanion && !cName) return showError('동반자 성함을 입력해 주세요.', companionName);
+      if (!consentEl.checked) return showError('개인정보 수집·이용에 동의해 주세요.');
+      if (!RSVP_ENDPOINT) return showError('회신 접수 준비 중입니다. 잠시 후 다시 시도해 주세요.');
+
+      var payload = {
+        token: RSVP_TOKEN,
+        attend: attending,
+        name: name,
+        phone: phone,
+        companions: withCompanion ? [cName] : [],
+        memo: '',
+        ua: navigator.userAgent
+      };
+
+      submitBtn.disabled = true; submitBtn.textContent = '보내는 중…';
+
+      var body = JSON.stringify(payload);
+      // Apps Script 는 text/plain POST 를 preflight 없이 받는다. CORS 응답을 못 읽는 환경이면 no-cors 로 재시도.
+      fetch(RSVP_ENDPOINT, { method: 'POST', body: body, redirect: 'follow' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) { if (!res || res.ok === false) throw new Error(res && res.error || 'fail'); onSuccess(); })
+        .catch(function () {
+          fetch(RSVP_ENDPOINT, { method: 'POST', mode: 'no-cors', body: body })
+            .then(onSuccess)
+            .catch(function () {
+              submitBtn.disabled = false; submitBtn.textContent = '회신 보내기';
+              showError('전송에 실패했습니다. 네트워크를 확인하고 다시 시도해 주세요.');
+            });
+        });
+
+      function onSuccess() {
+        submitBtn.disabled = false; submitBtn.textContent = '회신 보내기';
+        document.getElementById('success-msg').innerHTML = attending
+          ? name + ' 님, <b>' + (withCompanion ? 2 : 1) + '명</b> 참석으로 접수되었습니다.<br>12월 4일에 뵙겠습니다.'
+          : name + ' 님, 불참으로 접수되었습니다.<br>마음 전해 주셔서 감사합니다.';
+        form.hidden = true; success.hidden = false;
+        doneEl.hidden = false;
+        try { localStorage.setItem('rsvp-2026', 'done'); } catch (e) {}
+        form.reset(); refresh();
+      }
+    });
+
+    // 마감 지나면 버튼 문구만 바꿈 (접수 자체는 열어 둠 — 늦은 회신도 받는 편이 운영에 유리)
+    var now = new Date();
+    var kst = new Date(now.getTime() + (now.getTimezoneOffset() + 540) * 60000);
+    if (Date.UTC(kst.getFullYear(), kst.getMonth(), kst.getDate()) > DEADLINE) {
+      openBtn.textContent = '참석 여부 회신하기 (마감 후 접수)';
+    }
   })();
 </script>
