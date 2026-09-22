@@ -1,15 +1,16 @@
 /**
- * 2026 조혈모세포 기증자 감사의 날 — RSVP 접수 스크립트
+ * 2026 조혈모세포 기증자 감사의 날 — RSVP 접수 스크립트  (v4)
  *
- * 사용법
+ * 처음 설치
  *  1. 구글 스프레드시트 "2026 감사의 날 RSVP 회신 명단" 열기
  *  2. 확장 프로그램 → Apps Script → 기본 코드(Code.gs) 전부 지우고 이 파일 내용 붙여넣기 → 저장(💾)
  *  3. 배포 → 새 배포 → 유형 선택(⚙) → 웹 앱
- *       - 설명: RSVP
- *       - 다음 사용자 인증 정보로 실행: **나**
- *       - 액세스 권한이 있는 사용자: **모든 사용자**
- *     → 배포 → 액세스 승인(계정 선택 → 고급 → 안전하지 않은 페이지로 이동 → 허용)
+ *       - 다음 사용자 인증 정보로 실행: **나** / 액세스 권한이 있는 사용자: **모든 사용자**
+ *     → 배포 → 액세스 승인
  *  4. 나오는 "웹 앱 URL"(https://script.google.com/macros/s/…/exec) 을 복사해서 전달
+ *
+ * 코드만 바꿀 때 (URL 유지)
+ *  코드 교체 → 저장 → 배포 → 배포 관리 → ✎(수정) → 버전: "새 버전" → 배포
  *
  * 시트는 본인만 열람 가능(기본 비공개). 초청장 페이지는 이 URL로 POST/GET만 하므로
  * 수신자는 시트를 볼 수 없습니다.
@@ -35,19 +36,24 @@ function getSheet() {
     sh.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
     sh.setFrozenRows(1);
   }
+  // 뒤4자리 열은 항상 텍스트 서식 (0001 의 앞 0 보존)
+  sh.getRange(2, COL.last4, Math.max(sh.getMaxRows() - 1, 1), 1).setNumberFormat('@');
   return sh;
 }
 
-function norm(s) { return String(s || '').replace(/\s+/g, '').trim(); }
+function normName(s) { return String(s || '').replace(/\s+/g, '').trim(); }
+// 숫자로 저장된 경우(1 → "0001")도 같은 값으로 취급
+function normLast4(s) { var d = String(s || '').replace(/\D/g, ''); return d ? ('0000' + d).slice(-4) : ''; }
 
 // 같은 이름 + 뒤4자리 행 번호 (없으면 0)
 function findRow(sh, name, last4) {
   var last = sh.getLastRow();
   if (last < 2) return 0;
   var vals = sh.getRange(2, COL.name, last - 1, 2).getValues();
-  var n = norm(name), l = norm(last4);
+  var n = normName(name), l = normLast4(last4);
+  if (!n || !l) return 0;
   for (var i = 0; i < vals.length; i++) {
-    if (norm(vals[i][0]) === n && norm(vals[i][1]) === l) return i + 2;
+    if (normName(vals[i][0]) === n && normLast4(vals[i][1]) === l) return i + 2;
   }
   return 0;
 }
@@ -73,7 +79,7 @@ function doPost(e) {
     if (data.token !== TOKEN) return respond({ ok: false, error: 'bad token' });
 
     var name = String(data.name || '').trim();
-    var last4 = String(data.last4 || '').replace(/\D/g, '');
+    var last4 = normLast4(data.last4);
     if (!name || last4.length !== 4) return respond({ ok: false, error: 'missing fields' });
 
     var attend = data.attend !== false;
@@ -89,10 +95,13 @@ function doPost(e) {
       return respond(info);
     }
 
-    sh.appendRow([new Date(), name, last4, attend ? '참석' : '불참', attend ? (family ? '가족 1인 동반' : '동반하지 않음') : '', total, String(data.memo || '').trim()]);
-    var row = sh.getLastRow();
+    var row = sh.getLastRow() + 1;
+    sh.getRange(row, COL.last4).setNumberFormat('@');   // 값 쓰기 전에 텍스트 서식 → "0001" 그대로 저장
+    sh.getRange(row, 1, 1, HEADERS.length).setValues([[
+      new Date(), name, last4, attend ? '참석' : '불참',
+      attend ? (family ? '가족 1인 동반' : '동반하지 않음') : '', total, String(data.memo || '').trim()
+    ]]);
     sh.getRange(row, COL.date).setNumberFormat('yyyy-mm-dd hh:mm');
-    sh.getRange(row, COL.last4).setNumberFormat('@');   // 앞자리 0 유지
 
     if (NOTIFY_EMAIL) {
       try {
@@ -129,4 +138,15 @@ function doGet(e) {
 
 function respond(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── 관리용: 이름이 "테스트" 인 행 전부 삭제. 편집기에서 함수 선택 → ▶ 실행
+function deleteTestRows() {
+  var sh = getSheet();
+  var last = sh.getLastRow();
+  var removed = 0;
+  for (var r = last; r >= 2; r--) {
+    if (normName(sh.getRange(r, COL.name).getValue()) === '테스트') { sh.deleteRow(r); removed++; }
+  }
+  Logger.log('삭제한 테스트 행: ' + removed);
 }
